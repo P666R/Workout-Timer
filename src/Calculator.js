@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from 'react';
+import { memo, useState } from 'react';
 import clickSound from './ClickSound.m4a';
 
 function Calculator({ workouts, allowSound }) {
@@ -9,12 +9,19 @@ function Calculator({ workouts, allowSound }) {
 
   const [duration, setDuration] = useState(0);
 
-  useEffect(
-    function () {
-      setDuration((number * sets * speed) / 60 + (sets - 1) * durationBreak);
-    },
-    [number, sets, speed, durationBreak]
-  );
+  //! Rather than individual onChange handlers, using a functional programming approach and currying the event object with the setter function to replace useEffect hook
+  const handleUpdate = (setFunc, key) => (e) => {
+    const targetValue = e.target.value;
+    const calcDurationBy = {
+      number: (targetValue * sets * speed) / 60 + (sets - 1) * durationBreak,
+      sets: (targetValue * number * speed) / 60 + (sets - 1) * durationBreak,
+      speed: (targetValue * sets * number) / 60 + (sets - 1) * durationBreak,
+      durationBreak: (number * sets * speed) / 60 + (sets - 1) * targetValue,
+    };
+
+    setFunc(targetValue);
+    setDuration(calcDurationBy[key]);
+  };
 
   // const duration = (number * sets * speed) / 60 + (sets - 1) * durationBreak;
 
@@ -40,7 +47,7 @@ function Calculator({ workouts, allowSound }) {
       <form>
         <div>
           <label>Type of workout</label>
-          <select value={number} onChange={(e) => setNumber(+e.target.value)}>
+          <select value={number} onChange={handleUpdate(setNumber, 'number')}>
             {workouts.map((workout) => (
               <option value={workout.numExercises} key={workout.name}>
                 {workout.name} ({workout.numExercises} exercises)
@@ -55,7 +62,7 @@ function Calculator({ workouts, allowSound }) {
             min="1"
             max="5"
             value={sets}
-            onChange={(e) => setSets(e.target.value)}
+            onChange={handleUpdate(setSets, 'sets')}
           />
           <span>{sets}</span>
         </div>
@@ -67,7 +74,7 @@ function Calculator({ workouts, allowSound }) {
             max="180"
             step="30"
             value={speed}
-            onChange={(e) => setSpeed(e.target.value)}
+            onChange={handleUpdate(setSpeed, 'speed')}
           />
           <span>{speed} sec/exercise</span>
         </div>
@@ -78,7 +85,7 @@ function Calculator({ workouts, allowSound }) {
             min="1"
             max="10"
             value={durationBreak}
-            onChange={(e) => setDurationBreak(e.target.value)}
+            onChange={handleUpdate(setDurationBreak, 'durationBreak')}
           />
           <span>{durationBreak} minutes/break</span>
         </div>
