@@ -1,12 +1,15 @@
+import { memo } from 'react';
+
 function ToggleSounds({ allowSound, setAllowSound }) {
   return (
     <button
       className="btn-sound"
       onClick={() => setAllowSound((allow) => !allow)}
     >
-      {allowSound ? "🔈" : "🔇"}
+      {allowSound ? '🔈' : '🔇'}
     </button>
   );
 }
 
-export default ToggleSounds;
+//! Memoized the component so that it doesnt render when its parent rerenders as long as the props stay the same between renders
+export default memo(ToggleSounds);
